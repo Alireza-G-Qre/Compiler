@@ -1,0 +1,19 @@
+int func(float num){
+	if num == 0:
+		return 1;
+	else return num * (num-1)
+?
+}
+void main(){
+integer letter23, integer letterB, floatNumber gjdh/$%sig;
+int num; int sol.
+for( int i == 0; i < 100 ; i++){
+	letter23 = func(integer) + letter23
+	j = j */ 2
+	charArr[i] = hi * letter23
+}
+q = 0//0
+qw = 0/0
+we = 3/4''
+done!
+}

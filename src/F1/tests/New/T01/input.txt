@@ -1,0 +1,21 @@
+/*comment test*//
+float function(int  /*comment*/){
+	repeat{
+		if(go to hell != 0)
+			cnt++;
+		else
+			test = 123invalid */ plus
+	} until(truth > 6)
+??
+//one line comment
+
+
+
+radio = 09-+*
+String str[1000};
+str = 134ui5
+?>><
+/* $%^&#^#))$@$
+		not closed
+				not closed yet
+} not closed
