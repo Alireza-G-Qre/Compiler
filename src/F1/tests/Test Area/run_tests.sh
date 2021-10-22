@@ -1,5 +1,3 @@
-#!/bin/sh
-
 rm brief_results.txt;
 rm log.txt;
 

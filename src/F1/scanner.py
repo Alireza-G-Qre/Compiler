@@ -45,92 +45,109 @@ class Scanner:
             regex_whitespace = re.compile(r'[\s|\n|\t|\v|\f|\r]')
 
             cls.states = {'start': [
-                {'re': regex_whitespace, 'ne': 'start', 'is_terminal': True},
-                {'re': regex_symbol, 'ne': 'symbol'},
-                {'re': regex_number, 'ne': 'number'},
-                {'re': regex_alphabet, 'ne': 'identifier'},
                 {'re': re.compile(r'[*]'), 'ne': 'symbol_star'},
                 {'re': re.compile(r'[=]'), 'ne': 'symbol_equal'},
                 {'re': re.compile(r'[/]'), 'ne': 'starting_comment'},
-                {'re': re.compile(r'.'), 'ne': 'panic_mode', 'is_new': True},
-            ], 'symbol': [
-                {'re': regex_alphabet, 'ne': 'identifier', 'is_new': True},
-                {'re': regex_number, 'ne': 'number', 'is_new': True},
-                {'re': regex_symbol, 'ne': 'symbol', 'is_new': True},
-                {'re': regex_whitespace, 'ne': 'start', 'is_terminal': True},
-                {'re': re.compile(r'[/]'), 'ne': 'starting_comment', 'is_new': True},
-                {'re': re.compile(r'[=]'), 'ne': 'symbol_equal', 'is_new': True},
-                {'re': re.compile(r'[*]'), 'ne': 'symbol_star', 'is_new': True},
-                {'re': re.compile(r'.'), 'ne': 'panic_mode', 'is_new': True},
-            ], 'number': [
-                {'re': regex_alphabet, 'ne': 'invalid_number'},
-                {'re': regex_symbol, 'ne': 'symbol', 'is_new': True},
+                {'re': regex_symbol, 'ne': 'symbol'},
                 {'re': regex_number, 'ne': 'number'},
-                {'re': regex_whitespace, 'ne': 'start', 'is_terminal': True},
-                {'re': re.compile(r'[*]'), 'ne': 'symbol_star', 'is_new': True},
-                {'re': re.compile(r'[=]'), 'ne': 'symbol_equal', 'is_new': True},
-                {'re': re.compile(r'[/]'), 'ne': 'starting_comment', 'is_new': True},
+                {'re': regex_alphabet, 'ne': 'identifier'},
+                {'re': regex_whitespace, 'ne': 'whitespace'},
+                {'re': re.compile(r'.'), 'ne': 'panic_mode'},
+            ], 'whitespace': [
+                {'re': regex_alphabet, 'ne': 'identifier', 'refresh': True},
+                {'re': regex_number, 'ne': 'number', 'refresh': True},
+                {'re': regex_symbol, 'ne': 'symbol', 'refresh': True},
+                {'re': regex_whitespace, 'ne': 'whitespace'},
+                {'re': re.compile(r'[/]'), 'ne': 'starting_comment', 'refresh': True},
+                {'re': re.compile(r'[=]'), 'ne': 'symbol_equal', 'refresh': True},
+                {'re': re.compile(r'[*]'), 'ne': 'symbol_star', 'refresh': True},
+                {'re': re.compile(r'.'), 'ne': 'panic_mode', 'refresh': True},
+            ], 'symbol': [
+                {'re': regex_whitespace, 'ne': 'whitespace', 'refresh': True},
+                {'re': regex_alphabet, 'ne': 'identifier', 'refresh': True},
+                {'re': regex_number, 'ne': 'number', 'refresh': True},
+                {'re': regex_symbol, 'ne': 'symbol', 'refresh': True},
+                {'re': re.compile(r'[/]'), 'ne': 'starting_comment', 'refresh': True},
+                {'re': re.compile(r'[=]'), 'ne': 'symbol_equal', 'refresh': True},
+                {'re': re.compile(r'[*]'), 'ne': 'symbol_star', 'refresh': True},
+                {'re': re.compile(r'.'), 'ne': 'panic_mode', 'refresh': True},
+            ], 'number': [
+                {'re': regex_number, 'ne': 'number'},
+                {'re': regex_alphabet, 'ne': 'invalid_number'},
+                {'re': regex_symbol, 'ne': 'symbol', 'refresh': True},
+                {'re': re.compile(r'[/]'), 'ne': 'starting_comment', 'refresh': True},
+                {'re': re.compile(r'[=]'), 'ne': 'symbol_equal', 'refresh': True},
+                {'re': re.compile(r'[*]'), 'ne': 'symbol_star', 'refresh': True},
+                {'re': regex_whitespace, 'ne': 'whitespace', 'refresh': True},
                 {'re': re.compile(r'.'), 'ne': 'panic_mode'},
             ], 'identifier': [
-                {'re': regex_symbol, 'ne': 'symbol', 'is_new': True},
                 {'re': regex_alphabet, 'ne': 'identifier'},
                 {'re': regex_number, 'ne': 'identifier'},
-                {'re': regex_whitespace, 'ne': 'start', 'is_terminal': True},
-                {'re': re.compile(r'[*]'), 'ne': 'symbol_star', 'is_new': True},
-                {'re': re.compile(r'[=]'), 'ne': 'symbol_equal', 'is_new': True},
-                {'re': re.compile(r'[/]'), 'ne': 'starting_comment', 'is_new': True},
+                {'re': regex_symbol, 'ne': 'symbol', 'refresh': True},
+                {'re': re.compile(r'[/]'), 'ne': 'starting_comment', 'refresh': True},
+                {'re': re.compile(r'[=]'), 'ne': 'symbol_equal', 'refresh': True},
+                {'re': re.compile(r'[*]'), 'ne': 'symbol_star', 'refresh': True},
+                {'re': regex_whitespace, 'ne': 'whitespace', 'refresh': True},
                 {'re': re.compile(r'.'), 'ne': 'panic_mode'},
             ], 'symbol_equal': [
-                {'re': re.compile(r'[=]'), 'ne': 'symbol', 'is_terminal': True},
-                {'re': regex_whitespace, 'ne': 'start', 'is_terminal': True},
-                {'re': re.compile(r'[/]'), 'ne': 'starting_comment'},
-                {'re': regex_number, 'ne': 'number', 'is_new': True},
-                {'re': regex_alphabet, 'ne': 'identifier', 'is_new': True},
+                {'re': re.compile(r'[/]'), 'ne': 'starting_comment', 'refresh': True},
+                {'re': re.compile(r'[=]'), 'ne': 'double_equal'},
+                {'re': regex_number, 'ne': 'number', 'refresh': True},
+                {'re': regex_alphabet, 'ne': 'identifier', 'refresh': True},
+                {'re': regex_whitespace, 'ne': 'whitespace', 'refresh': True},
                 {'re': re.compile(r'.'), 'ne': 'panic_mode'},
+            ], 'double_equal': [
+                {'re': re.compile(r'[*]'), 'ne': 'symbol_star', 'refresh': True},
+                {'re': re.compile(r'[=]'), 'ne': 'symbol_equal', 'refresh': True},
+                {'re': re.compile(r'[/]'), 'ne': 'starting_comment', 'refresh': True},
+                {'re': regex_symbol, 'ne': 'symbol', 'refresh': True},
+                {'re': regex_number, 'ne': 'number', 'refresh': True},
+                {'re': regex_alphabet, 'ne': 'identifier', 'refresh': True},
+                {'re': regex_whitespace, 'ne': 'whitespace', 'refresh': True},
+                {'re': re.compile(r'.'), 'ne': 'panic_mode', 'refresh': True},
             ], 'symbol_star': [
-                {'re': regex_number, 'ne': 'number', 'is_new': True},
+                {'re': regex_whitespace, 'ne': 'whitespace', 'refresh': True},
+                {'re': regex_alphabet, 'ne': 'identifier', 'refresh': True},
+                {'re': regex_number, 'ne': 'number', 'refresh': True},
                 {'re': re.compile(r'[/]'), 'ne': 'unmatched_comment'},
-                {'re': regex_alphabet, 'ne': 'identifier', 'is_new': True},
-                {'re': regex_whitespace, 'ne': 'start', 'is_terminal': True},
                 {'re': re.compile(r'.'), 'ne': 'panic_mode'},
             ], 'starting_comment': [
                 {'re': re.compile(r'[/]'), 'ne': 'comment_line'},
                 {'re': re.compile(r'[*]'), 'ne': 'ongoing_comment'},
-                {'re': regex_whitespace, 'ne': 'panic_mode'},
-                {'re': re.compile(r'.'), 'ne': 'panic_mode', 'is_terminal': True},
+                {'re': re.compile(r'.|\n'), 'ne': 'panic_mode'},
             ], 'comment_line': [
-                {'re': re.compile(r'[\n]'), 'ne': 'start', 'is_terminal': True},
                 {'re': re.compile(r'[^\n]'), 'ne': 'comment_line'},
+                {'re': re.compile(r'[\n]'), 'ne': 'whitespace', 'refresh': True},
             ], 'ongoing_comment': [
                 {'re': re.compile(r'[*]'), 'ne': 'ending_comment'},
                 {'re': re.compile(r'[^*]'), 'ne': 'ongoing_comment'},
             ], 'ending_comment': [
-                {'re': re.compile(r'[/]'), 'ne': 'start', 'is_terminal': True},
                 {'re': re.compile(r'[^/]'), 'ne': 'ongoing_comment'},
+                {'re': re.compile(r'[/]'), 'ne': 'start', 'refresh': True},
             ], 'invalid_number': [
-                {'re': regex_whitespace, 'ne': 'start', 'is_terminal': True},
-                {'re': regex_symbol, 'ne': 'symbol', 'is_new': True},
-                {'re': regex_number, 'ne': 'number', 'is_new': True},
-                {'re': regex_alphabet, 'ne': 'identifier', 'is_new': True},
-                {'re': re.compile(r'[=]'), 'ne': 'symbol_equal', 'is_new': True},
-                {'re': re.compile(r'[/]'), 'ne': 'starting_comment', 'is_new': True},
-                {'re': re.compile(r'.'), 'ne': 'panic_mode', 'is_new': True},
+                {'re': re.compile(r'[/]'), 'ne': 'starting_comment', 'refresh': True},
+                {'re': re.compile(r'[=]'), 'ne': 'symbol_equal', 'refresh': True},
+                {'re': regex_whitespace, 'ne': 'whitespace', 'refresh': True},
+                {'re': regex_alphabet, 'ne': 'identifier', 'refresh': True},
+                {'re': regex_symbol, 'ne': 'symbol', 'refresh': True},
+                {'re': regex_number, 'ne': 'number', 'refresh': True},
+                {'re': re.compile(r'.'), 'ne': 'panic_mode', 'refresh': True},
             ], 'unmatched_comment': [
-                {'re': regex_whitespace, 'ne': 'start', 'is_terminal': True},
-                {'re': regex_symbol, 'ne': 'symbol', 'is_new': True},
-                {'re': regex_number, 'ne': 'number', 'is_new': True},
-                {'re': regex_alphabet, 'ne': 'identifier', 'is_new': True},
-                {'re': re.compile(r'[=]'), 'ne': 'symbol_equal', 'is_new': True},
-                {'re': re.compile(r'[/]'), 'ne': 'starting_comment', 'is_new': True},
-                {'re': re.compile(r'.'), 'ne': 'panic_mode', 'is_new': True},
+                {'re': regex_whitespace, 'ne': 'whitespace', 'refresh': True},
+                {'re': regex_alphabet, 'ne': 'identifier', 'refresh': True},
+                {'re': regex_symbol, 'ne': 'symbol', 'refresh': True},
+                {'re': regex_number, 'ne': 'number', 'refresh': True},
+                {'re': re.compile(r'[/]'), 'ne': 'starting_comment', 'refresh': True},
+                {'re': re.compile(r'[=]'), 'ne': 'symbol_equal', 'refresh': True},
+                {'re': re.compile(r'.'), 'ne': 'panic_mode', 'refresh': True},
             ], 'panic_mode': [
-                {'re': regex_whitespace, 'ne': 'start', 'is_terminal': True},
-                {'re': regex_symbol, 'ne': 'symbol', 'is_new': True},
-                {'re': regex_number, 'ne': 'number', 'is_new': True},
-                {'re': regex_alphabet, 'ne': 'identifier', 'is_new': True},
-                {'re': re.compile(r'[=]'), 'ne': 'symbol_equal', 'is_new': True},
-                {'re': re.compile(r'[/]'), 'ne': 'starting_comment', 'is_new': True},
-                {'re': re.compile(r'.'), 'ne': 'panic_mode', 'is_new': True},
+                {'re': regex_whitespace, 'ne': 'whitespace', 'refresh': True},
+                {'re': regex_symbol, 'ne': 'symbol', 'refresh': True},
+                {'re': regex_number, 'ne': 'number', 'refresh': True},
+                {'re': regex_alphabet, 'ne': 'identifier', 'refresh': True},
+                {'re': re.compile(r'[=]'), 'ne': 'symbol_equal', 'refresh': True},
+                {'re': re.compile(r'[/]'), 'ne': 'starting_comment', 'refresh': True},
+                {'re': re.compile(r'.'), 'ne': 'panic_mode', 'refresh': True},
             ]}
 
     def __init__(self):
@@ -139,6 +156,7 @@ class Scanner:
         self.State.initialize()
         self.current_state = 'start'
         self.lineno, self.buffer, self.next = 1, '', None
+        self.saved_buffers = []
         self.keywords = [
             'if', 'else', 'void', 'int', 'repeat', 'break', 'until', 'return'
         ]
@@ -183,11 +201,11 @@ class Scanner:
         if not _buffer:
             return
 
-        if self.current_state == 'invalid_number':
-            self.lexical_errors.append(self.Error.InvalidNumber(_buffer, lineno))
-
-        elif self.current_state == 'unmatched_comment':
+        if self.current_state == 'unmatched_comment':
             self.lexical_errors.append(self.Error.UnmatchedComment(_buffer, lineno))
+
+        elif self.current_state == 'invalid_number':
+            self.lexical_errors.append(self.Error.InvalidNumber(_buffer, lineno))
 
         elif self.current_state == 'panic_mode':
             self.lexical_errors.append(self.Error.InvalidInput(_buffer, lineno))
@@ -203,8 +221,11 @@ class Scanner:
         else:
 
             token = {
-                'number': 'NUM', 'symbol': 'SYMBOL', 'symbol_equal': 'SYMBOL',
-                'symbol_star': 'SYMBOL'}.get(self.current_state)
+                'number': 'NUM', 'symbol': 'SYMBOL',
+                'symbol_equal': 'SYMBOL',
+                'symbol_star': 'SYMBOL',
+                'double_equal': 'SYMBOL'
+            }.get(self.current_state)
 
             if token:
                 token = self.Token(_buffer, token, lineno)
@@ -214,27 +235,21 @@ class Scanner:
     def _update(self, ch):
 
         for checker in self.State.states[self.current_state]:
-            if checker['re'].fullmatch(ch):
+            if not checker['re'].fullmatch(ch):
+                continue
 
-                if 'is_new' in checker:
-                    self._save_turn(self.buffer.strip())
-                    self.buffer = ch
-                    self.current_state = checker['ne']
-                    return
+            if 'refresh' in checker:
+                self._save_turn(self.buffer.strip())
+                self.buffer = ch
+                self.current_state = checker['ne']
 
-                if 'is_terminal' in checker:
-                    self._save_turn((self.buffer + ch).strip())
-                    self.buffer = ''
-                    self.current_state = checker['ne']
-                    return
-
+            else:
                 self.buffer += ch
                 self.current_state = checker['ne']
-                return
 
-        self.lexical_errors.append(
-            self.Error.InvalidInput((self.buffer + ch).strip(), self.lineno))
-        self.buffer = ''
+            return
+
+        raise Exception('Bad state: {}, {}'.format(self.current_state, ch))
 
     def _end(self):
         self._update('\n')
