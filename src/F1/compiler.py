@@ -20,20 +20,19 @@ class Compiler:
                 yield self.result
 
     def save_scanner_results(self, directory=''):
-        address = os.path.join(directory, 'tests/New/T02/lexical_errors.txt')
+        address = os.path.join(directory, 'lexical_errors.txt')
         with open(address, 'w') as er:
             er.write(
-                self.scanner.lexical_errors_to_string or 'There is no lexical error.')
+                self.scanner.lexical_errors_to_string
+                or 'There is no lexical error.')
 
-        address = os.path.join(directory, 'tests/New/T02/symbol_table.txt')
+        address = os.path.join(directory, 'symbol_table.txt')
         with open(address, 'w') as sy:
             sy.write(self.scanner.symbol_table_to_string)
 
-        address = os.path.join(directory, 'tests/New/T02/tokens.txt')
+        address = os.path.join(directory, 'tokens.txt')
         with open(address, 'w') as to:
             to.write(self.scanner.tokens_to_string)
-
-        os.system('cp input.txt {}'.format(os.path.join(directory, 'tests/New/T02/input.txt')))
 
 
 if __name__ == '__main__':
