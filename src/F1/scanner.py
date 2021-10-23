@@ -156,7 +156,7 @@ class Scanner:
         self.State.initialize()
         self.current_state = 'start'
         self.lineno, self.buffer, self.next = 1, '', None
-        self.saved_buffers = []
+
         self.keywords = [
             'if', 'else', 'void', 'int', 'repeat', 'break', 'until', 'return'
         ]
@@ -183,8 +183,7 @@ class Scanner:
 
     def update(self, character):
 
-        result = self.next
-        self.next = None
+        result, self.next = self.next, None
 
         if not character:
             return self._end()
