@@ -114,7 +114,12 @@ class Scanner:
             ], 'starting_comment': [
                 {'re': re.compile(r'[/]'), 'ne': 'comment_line'},
                 {'re': re.compile(r'[*]'), 'ne': 'ongoing_comment'},
-                {'re': re.compile(r'.|\n'), 'ne': 'panic_mode'},
+                {'re': re.compile(r'[=]'), 'ne': 'symbol_equal', 'refresh': True},
+                {'re': regex_whitespace, 'ne': 'whitespace', 'refresh': True},
+                {'re': regex_alphabet, 'ne': 'identifier', 'refresh': True},
+                {'re': regex_symbol, 'ne': 'symbol', 'refresh': True},
+                {'re': regex_number, 'ne': 'number', 'refresh': True},
+                {'re': re.compile(r'.'), 'ne': 'panic_mode'},
             ], 'comment_line': [
                 {'re': re.compile(r'[^\n]'), 'ne': 'comment_line'},
                 {'re': re.compile(r'[\n]'), 'ne': 'whitespace', 'refresh': True},
@@ -206,7 +211,7 @@ class Scanner:
         elif self.current_state == 'invalid_number':
             self.lexical_errors.append(self.Error.InvalidNumber(_buffer, lineno))
 
-        elif self.current_state == 'panic_mode':
+        elif self.current_state in ('panic_mode', 'starting_comment'):
             self.lexical_errors.append(self.Error.InvalidInput(_buffer, lineno))
 
         elif self.current_state == 'identifier':
@@ -220,7 +225,8 @@ class Scanner:
         else:
 
             token = {
-                'number': 'NUM', 'symbol': 'SYMBOL',
+                'number': 'NUM',
+                'symbol': 'SYMBOL',
                 'symbol_equal': 'SYMBOL',
                 'symbol_star': 'SYMBOL',
                 'double_equal': 'SYMBOL'
