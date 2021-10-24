@@ -1,5 +1,6 @@
-from scanner import Scanner
 import os
+
+from scanner import Scanner
 
 
 class Compiler:

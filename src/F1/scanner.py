@@ -254,7 +254,10 @@ class Scanner:
 
             return
 
-        raise Exception('Bad state: {}, {}'.format(self.current_state, ch))
+        lineno = self.lineno - (self.buffer + ch).count('\n')
+        self.lexical_errors.append(
+            self.Error.InvalidInput(
+                (self.buffer + ch).strip(), lineno))
 
     def _end(self):
         self._update('\n')

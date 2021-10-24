@@ -5,9 +5,11 @@ echo "" > log.txt;
 echo "" > brief_results.txt;
 
 
-for dir in ../PA1_input_output_samples/*
+for dir in ../PA1_input_output/*
 do
     cp "${dir}/input.txt" ./input.txt
+#    printf "\n ${dir} \n"
+
     python3 ../../compiler.py
     # shellcheck disable=SC2059
     printf "\n\n\n\n=====================================>>>>> Running Test ${dir}...\n" >> log.txt
