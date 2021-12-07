@@ -1,3 +1,0 @@
-20.	(=/, Invalid input) (*$, Invalid input)
-22.	(!, Invalid input)
-24.	(/, Invalid input)

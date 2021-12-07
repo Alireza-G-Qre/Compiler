@@ -14,14 +14,16 @@ class Scanner:
             return '(%s, %s)' % (self.token, self.object)
 
     class Error:
+
         class Base(Exception):
+
+            def __str__(self):
+                return '(%s, %s)' % (self.object, self.message)
+
             message = 'Default error'
 
             def __init__(self, whatis, lineno):
                 self.object, self.lineno = whatis, lineno
-
-            def __str__(self):
-                return '(%s, %s)' % (self.object, self.message)
 
         class InvalidNumber(Base):
             message = 'Invalid number'
@@ -52,7 +54,7 @@ class Scanner:
                 {'re': regex_number, 'ne': 'number'},
                 {'re': regex_alphabet, 'ne': 'identifier'},
                 {'re': regex_whitespace, 'ne': 'whitespace'},
-                {'re': re.compile(r'.'), 'ne': 'panic_mode'},
+                {'re': re.compile(r'F2'), 'ne': 'panic_mode'},
             ], 'whitespace': [
                 {'re': regex_alphabet, 'ne': 'identifier', 'refresh': True},
                 {'re': regex_number, 'ne': 'number', 'refresh': True},
@@ -61,7 +63,7 @@ class Scanner:
                 {'re': re.compile(r'[/]'), 'ne': 'starting_comment', 'refresh': True},
                 {'re': re.compile(r'[=]'), 'ne': 'symbol_equal', 'refresh': True},
                 {'re': re.compile(r'[*]'), 'ne': 'symbol_star', 'refresh': True},
-                {'re': re.compile(r'.'), 'ne': 'panic_mode', 'refresh': True},
+                {'re': re.compile(r'F2'), 'ne': 'panic_mode', 'refresh': True},
             ], 'symbol': [
                 {'re': regex_whitespace, 'ne': 'whitespace', 'refresh': True},
                 {'re': regex_alphabet, 'ne': 'identifier', 'refresh': True},
@@ -70,7 +72,7 @@ class Scanner:
                 {'re': re.compile(r'[/]'), 'ne': 'starting_comment', 'refresh': True},
                 {'re': re.compile(r'[=]'), 'ne': 'symbol_equal', 'refresh': True},
                 {'re': re.compile(r'[*]'), 'ne': 'symbol_star', 'refresh': True},
-                {'re': re.compile(r'.'), 'ne': 'panic_mode', 'refresh': True},
+                {'re': re.compile(r'F2'), 'ne': 'panic_mode', 'refresh': True},
             ], 'number': [
                 {'re': regex_number, 'ne': 'number'},
                 {'re': regex_alphabet, 'ne': 'invalid_number'},
@@ -79,7 +81,7 @@ class Scanner:
                 {'re': re.compile(r'[=]'), 'ne': 'symbol_equal', 'refresh': True},
                 {'re': re.compile(r'[*]'), 'ne': 'symbol_star', 'refresh': True},
                 {'re': regex_whitespace, 'ne': 'whitespace', 'refresh': True},
-                {'re': re.compile(r'.'), 'ne': 'panic_mode'},
+                {'re': re.compile(r'F2'), 'ne': 'panic_mode'},
             ], 'identifier': [
                 {'re': regex_alphabet, 'ne': 'identifier'},
                 {'re': regex_number, 'ne': 'identifier'},
@@ -88,14 +90,14 @@ class Scanner:
                 {'re': re.compile(r'[=]'), 'ne': 'symbol_equal', 'refresh': True},
                 {'re': re.compile(r'[*]'), 'ne': 'symbol_star', 'refresh': True},
                 {'re': regex_whitespace, 'ne': 'whitespace', 'refresh': True},
-                {'re': re.compile(r'.'), 'ne': 'panic_mode'},
+                {'re': re.compile(r'F2'), 'ne': 'panic_mode'},
             ], 'symbol_equal': [
                 {'re': re.compile(r'[/]'), 'ne': 'starting_comment', 'refresh': True},
                 {'re': re.compile(r'[=]'), 'ne': 'double_equal'},
                 {'re': regex_number, 'ne': 'number', 'refresh': True},
                 {'re': regex_alphabet, 'ne': 'identifier', 'refresh': True},
                 {'re': regex_whitespace, 'ne': 'whitespace', 'refresh': True},
-                {'re': re.compile(r'.'), 'ne': 'panic_mode'},
+                {'re': re.compile(r'F2'), 'ne': 'panic_mode'},
             ], 'double_equal': [
                 {'re': re.compile(r'[*]'), 'ne': 'symbol_star', 'refresh': True},
                 {'re': re.compile(r'[=]'), 'ne': 'symbol_equal', 'refresh': True},
@@ -104,13 +106,13 @@ class Scanner:
                 {'re': regex_number, 'ne': 'number', 'refresh': True},
                 {'re': regex_alphabet, 'ne': 'identifier', 'refresh': True},
                 {'re': regex_whitespace, 'ne': 'whitespace', 'refresh': True},
-                {'re': re.compile(r'.'), 'ne': 'panic_mode', 'refresh': True},
+                {'re': re.compile(r'F2'), 'ne': 'panic_mode', 'refresh': True},
             ], 'symbol_star': [
                 {'re': regex_whitespace, 'ne': 'whitespace', 'refresh': True},
                 {'re': regex_alphabet, 'ne': 'identifier', 'refresh': True},
                 {'re': regex_number, 'ne': 'number', 'refresh': True},
                 {'re': re.compile(r'[/]'), 'ne': 'unmatched_comment'},
-                {'re': re.compile(r'.'), 'ne': 'panic_mode'},
+                {'re': re.compile(r'F2'), 'ne': 'panic_mode'},
             ], 'starting_comment': [
                 {'re': re.compile(r'[/]'), 'ne': 'comment_line'},
                 {'re': re.compile(r'[*]'), 'ne': 'ongoing_comment'},
@@ -119,7 +121,7 @@ class Scanner:
                 {'re': regex_alphabet, 'ne': 'identifier', 'refresh': True},
                 {'re': regex_symbol, 'ne': 'symbol', 'refresh': True},
                 {'re': regex_number, 'ne': 'number', 'refresh': True},
-                {'re': re.compile(r'.'), 'ne': 'panic_mode'},
+                {'re': re.compile(r'F2'), 'ne': 'panic_mode'},
             ], 'comment_line': [
                 {'re': re.compile(r'[^\n]'), 'ne': 'comment_line'},
                 {'re': re.compile(r'[\n]'), 'ne': 'whitespace', 'refresh': True},
@@ -136,7 +138,7 @@ class Scanner:
                 {'re': regex_alphabet, 'ne': 'identifier', 'refresh': True},
                 {'re': regex_symbol, 'ne': 'symbol', 'refresh': True},
                 {'re': regex_number, 'ne': 'number', 'refresh': True},
-                {'re': re.compile(r'.'), 'ne': 'panic_mode', 'refresh': True},
+                {'re': re.compile(r'F2'), 'ne': 'panic_mode', 'refresh': True},
             ], 'unmatched_comment': [
                 {'re': regex_whitespace, 'ne': 'whitespace', 'refresh': True},
                 {'re': regex_alphabet, 'ne': 'identifier', 'refresh': True},
@@ -144,7 +146,7 @@ class Scanner:
                 {'re': regex_number, 'ne': 'number', 'refresh': True},
                 {'re': re.compile(r'[/]'), 'ne': 'starting_comment', 'refresh': True},
                 {'re': re.compile(r'[=]'), 'ne': 'symbol_equal', 'refresh': True},
-                {'re': re.compile(r'.'), 'ne': 'panic_mode', 'refresh': True},
+                {'re': re.compile(r'F2'), 'ne': 'panic_mode', 'refresh': True},
             ], 'panic_mode': [
                 {'re': regex_whitespace, 'ne': 'whitespace', 'refresh': True},
                 {'re': regex_symbol, 'ne': 'symbol', 'refresh': True},
@@ -152,14 +154,16 @@ class Scanner:
                 {'re': regex_alphabet, 'ne': 'identifier', 'refresh': True},
                 {'re': re.compile(r'[=]'), 'ne': 'symbol_equal', 'refresh': True},
                 {'re': re.compile(r'[/]'), 'ne': 'starting_comment', 'refresh': True},
-                {'re': re.compile(r'.'), 'ne': 'panic_mode', 'refresh': True},
+                {'re': re.compile(r'F2'), 'ne': 'panic_mode', 'refresh': True},
             ]}
 
-    def __init__(self):
+    def __init__(self, address):
         self.lexical_errors, self.tokens, self.symbol_table = [], [], []
 
         self.State.initialize()
         self.current_state = 'start'
+        self.address = address
+        self.scanning = False
         self.lineno, self.buffer, self.next = 1, '', None
 
         self.keywords = [
@@ -198,6 +202,19 @@ class Scanner:
 
         return result
 
+    def get_next_token(self):
+        with open(self.address, 'r') as f:
+
+            self.scanning = True
+
+            while self.scanning:
+                result = self.update(f.read(1))
+
+                if not result:
+                    continue
+
+                yield result
+
     def _save_turn(self, _buffer):
 
         lineno = self.lineno - self.buffer.count('\n')
@@ -228,8 +245,8 @@ class Scanner:
                 'number': 'NUM',
                 'symbol': 'SYMBOL',
                 'symbol_equal': 'SYMBOL',
+                'double_equal': 'SYMBOL',
                 'symbol_star': 'SYMBOL',
-                'double_equal': 'SYMBOL'
             }.get(self.current_state)
 
             if token:
@@ -261,11 +278,23 @@ class Scanner:
 
     def _end(self):
         self._update('\n')
+        self.scanning = False
         if self.current_state not in ('ongoing_comment', 'ending_comment'):
-            return 'end'
+            return
 
-        _buffer = self.buffer[:7] + ('...' if len(self.buffer) > 7 else '')
+        _buffer = self.buffer[:-1][:7] + ('...' if len(self.buffer) > 7 else '')
         _lineno = self.lineno - self.buffer.count('\n') + 1
         self.lexical_errors.append(self.Error.UnclosedComment(_buffer, _lineno))
 
-        return 'end'
+
+# Used to save scanner result in files.
+# def save_scanner_results(scanner, directory=''):
+#     address = os.path.join(directory, 'lexical_errors.txt')
+#     with open(address, 'w') as er:
+#         er.write(scanner.lexical_errors_to_string or 'There is no lexical error.')
+#
+#     address = os.path.join(directory, 'symbol_table.txt')
+#     with open(address, 'w') as sy: sy.write(scanner.symbol_table_to_string)
+#
+#     address = os.path.join(directory, 'tokens.txt')
+#     with open(address, 'w') as to: to.write(scanner.tokens_to_string)

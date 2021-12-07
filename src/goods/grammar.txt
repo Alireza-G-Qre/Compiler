@@ -1,0 +1,78 @@
+Program DeclarationOlist $
+DeclarationOlist Declaration DeclarationOlist
+DeclarationOlist ε
+Declaration DeclarationOinitial DeclarationOprime
+DeclarationOinitial TypeOspecifier ID
+DeclarationOprime FunOdeclarationOprime
+DeclarationOprime VarOdeclarationOprime
+VarOdeclarationOprime ;
+VarOdeclarationOprime [ NUM ] ;
+FunOdeclarationOprime ( Params ) CompoundOstmt
+TypeOspecifier int
+TypeOspecifier void
+Params int ID ParamOprime ParamOlist
+Params void
+ParamOlist , Param ParamOlist
+ParamOlist ε
+Param DeclarationOinitial ParamOprime
+ParamOprime [ ]
+ParamOprime ε
+CompoundOstmt { DeclarationOlist StatementOlist }
+StatementOlist Statement StatementOlist
+StatementOlist ε
+Statement ExpressionOstmt
+Statement CompoundOstmt
+Statement SelectionOstmt
+Statement IterationOstmt
+Statement ReturnOstmt
+ExpressionOstmt Expression ;
+ExpressionOstmt break ;
+ExpressionOstmt ;
+SelectionOstmt if ( Expression ) Statement ElseOstmt
+ElseOstmt endif
+ElseOstmt else Statement endif
+IterationOstmt repeat Statement until ( Expression )
+ReturnOstmt return ReturnOstmtOprime
+ReturnOstmtOprime ;
+ReturnOstmtOprime Expression ;
+Expression SimpleOexpressionOzegond
+Expression ID B
+B = Expression
+B [ Expression ] H
+B SimpleOexpressionOprime
+H = Expression
+H G D C
+SimpleOexpressionOzegond AdditiveOexpressionOzegond C
+SimpleOexpressionOprime AdditiveOexpressionOprime C
+C Relop AdditiveOexpression
+C ε
+Relop <
+Relop ==
+AdditiveOexpression Term D
+AdditiveOexpressionOprime TermOprime D
+AdditiveOexpressionOzegond TermOzegond D
+D Addop Term D
+D ε
+Addop +
+Addop -
+Term Factor G
+TermOprime FactorOprime G
+TermOzegond FactorOzegond G
+G * Factor G
+G ε
+Factor ( Expression )
+Factor ID VarOcallOprime
+Factor NUM
+VarOcallOprime ( Args )
+VarOcallOprime VarOprime
+VarOprime [ Expression ]
+VarOprime ε
+FactorOprime ( Args )
+FactorOprime ε
+FactorOzegond ( Expression )
+FactorOzegond NUM
+Args ArgOlist
+Args ε
+ArgOlist Expression ArgOlistOprime
+ArgOlistOprime , Expression ArgOlistOprime
+ArgOlistOprime ε
