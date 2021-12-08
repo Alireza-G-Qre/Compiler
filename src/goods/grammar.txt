@@ -1,78 +1,45 @@
-Program DeclarationOlist $
-DeclarationOlist Declaration DeclarationOlist
-DeclarationOlist ε
-Declaration DeclarationOinitial DeclarationOprime
-DeclarationOinitial TypeOspecifier ID
-DeclarationOprime FunOdeclarationOprime
-DeclarationOprime VarOdeclarationOprime
-VarOdeclarationOprime ;
-VarOdeclarationOprime [ NUM ] ;
-FunOdeclarationOprime ( Params ) CompoundOstmt
-TypeOspecifier int
-TypeOspecifier void
-Params int ID ParamOprime ParamOlist
-Params void
-ParamOlist , Param ParamOlist
-ParamOlist ε
-Param DeclarationOinitial ParamOprime
-ParamOprime [ ]
-ParamOprime ε
-CompoundOstmt { DeclarationOlist StatementOlist }
-StatementOlist Statement StatementOlist
-StatementOlist ε
-Statement ExpressionOstmt
-Statement CompoundOstmt
-Statement SelectionOstmt
-Statement IterationOstmt
-Statement ReturnOstmt
-ExpressionOstmt Expression ;
-ExpressionOstmt break ;
-ExpressionOstmt ;
-SelectionOstmt if ( Expression ) Statement ElseOstmt
-ElseOstmt endif
-ElseOstmt else Statement endif
-IterationOstmt repeat Statement until ( Expression )
-ReturnOstmt return ReturnOstmtOprime
-ReturnOstmtOprime ;
-ReturnOstmtOprime Expression ;
-Expression SimpleOexpressionOzegond
-Expression ID B
-B = Expression
-B [ Expression ] H
-B SimpleOexpressionOprime
-H = Expression
-H G D C
-SimpleOexpressionOzegond AdditiveOexpressionOzegond C
-SimpleOexpressionOprime AdditiveOexpressionOprime C
-C Relop AdditiveOexpression
-C ε
-Relop <
-Relop ==
-AdditiveOexpression Term D
-AdditiveOexpressionOprime TermOprime D
-AdditiveOexpressionOzegond TermOzegond D
-D Addop Term D
-D ε
-Addop +
-Addop -
-Term Factor G
-TermOprime FactorOprime G
-TermOzegond FactorOzegond G
-G * Factor G
-G ε
-Factor ( Expression )
-Factor ID VarOcallOprime
-Factor NUM
-VarOcallOprime ( Args )
-VarOcallOprime VarOprime
-VarOprime [ Expression ]
-VarOprime ε
-FactorOprime ( Args )
-FactorOprime ε
-FactorOzegond ( Expression )
-FactorOzegond NUM
-Args ArgOlist
-Args ε
-ArgOlist Expression ArgOlistOprime
-ArgOlistOprime , Expression ArgOlistOprime
-ArgOlistOprime ε
+Program -> Declaration-list $
+Declaration-list -> Declaration Declaration-list | EPSILON
+Declaration -> Declaration-initial Declaration-prime
+Declaration-initial -> Type-specifier ID
+Declaration-prime -> Fun-declaration-prime | Var-declaration-prime
+Var-declaration-prime -> ; | [ NUM ] ;
+Fun-declaration-prime -> ( Params ) Compound-stmt
+Type-specifier -> int | void
+Params -> int ID Param-prime Param-list | void
+Param-list -> , Param Param-list | EPSILON
+Param -> Declaration-initial Param-prime
+Param-prime -> [ ] | EPSILON
+Compound-stmt -> { Declaration-list Statement-list }
+Statement-list -> Statement Statement-list | EPSILON
+Statement -> Expression-stmt | Compound-stmt | Selection-stmt | Iteration-stmt | Return-stmt
+Expression-stmt -> Expression ; | break ; | ;
+Selection-stmt -> if ( Expression ) Statement Else-stmt
+Else-stmt -> endif | else Statement endif
+Iteration-stmt -> repeat Statement until ( Expression )
+Return-stmt -> return Return-stmt-prime
+Return-stmt-prime -> ; | Expression ;
+Expression -> Simple-expression-zegond | ID B
+B -> = Expression | [ Expression ] H | Simple-expression-prime
+H -> = Expression | G D C
+Simple-expression-zegond -> Additive-expression-zegond C
+Simple-expression-prime -> Additive-expression-prime C
+C -> Relop Additive-expression | EPSILON
+Relop -> < | ==
+Additive-expression -> Term D
+Additive-expression-prime -> Term-prime D
+Additive-expression-zegond -> Term-zegond D
+D -> Addop Term D | EPSILON
+Addop -> + | -
+Term -> Factor G
+Term-prime -> Factor-prime G
+Term-zegond -> Factor-zegond G
+G -> * Factor G | EPSILON
+Factor -> ( Expression ) | ID Var-call-prime | NUM
+Var-call-prime -> ( Args ) | Var-prime
+Var-prime -> [ Expression ] | EPSILON
+Factor-prime -> ( Args ) | EPSILON
+Factor-zegond -> ( Expression ) | NUM
+Args -> Arg-list | EPSILON
+Arg-list -> Expression Arg-list-prime
+Arg-list-prime -> , Expression Arg-list-prime | EPSILON
