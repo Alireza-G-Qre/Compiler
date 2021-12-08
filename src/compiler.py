@@ -13,5 +13,6 @@ class Compiler:
 
 if __name__ == '__main__':
     c = Compiler('input.txt')
-    print([str(token) for token in c.scanner.get_next_token()])
+    c.parser.proc()
+    c.parser.tree.show()
 

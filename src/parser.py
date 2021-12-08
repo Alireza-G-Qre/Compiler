@@ -1,11 +1,16 @@
 from scanner import Scanner
-
+from treelib import Tree
+from hashlib import md5
 
 class Parser:
 
-    @classmethod
-    def initialize(cls):
-        cls.states = {
+    def __init__(self, scanner):
+        self.get_next_token = (
+            (token.token if token.token in {'NUM', 'ID'} else token.object, token.lineno)
+            for token in scanner.get_next_token()
+        )
+
+        self.states = {
             'program': {
                 'transition': [
                     {'path': ['declaration-list', '$'], 'first': ['$', 'ε', 'int', 'void']},
@@ -103,7 +108,6 @@ class Parser:
                     {'path': ['compound-stmt'], 'first': ['{']},
                     {'path': ['selection-stmt'], 'first': ['if']},
                     {'path': ['iteration-stmt'], 'first': ['repeat']},
-
                 ],
                 'follow': [
                     'until', 'endif', 'else', 'break', ';', 'ID', '(', 'NUM',
@@ -317,19 +321,57 @@ class Parser:
             },
         }
 
-        for state in cls.states:
-            cls.states[state]['first'], cls.states[state]['follow'] = \
-                set(cls.states[state]['first']), set(cls.states[state]['follow'])
+        for state in self.states:
+            firsts = set()
+            for transition in self.states[state]['transition']:
+                transition['first'] = set(transition['first'])
+                firsts.update(transition['first'])
 
-    def __init__(self, scanner):
-        self.get_next_token = scanner.get_next_token
-        self.initialize()
-        self.current_state = 'program'
+            self.states[state]['first'] = firsts
 
-    def process(self):
+        self.lookahead, self.lineno = next(self.get_next_token)
+        self.errors, self.founds = [], []
+        self.whereIam = []
+        self.none_terminals = set(self.states)
+        self.tree = Tree()
 
-        def match(next_token):
-            pass
+    def proc(self, state='program'):
+        self.whereIam.append(state)
 
-        for token in self.get_next_token:
-            pass
+        if len(self.whereIam) > 1:
+            parent_code = md5('.'.join(self.whereIam[:-1]).encode()).hexdigest()
+            states_code = md5('.'.join(self.whereIam).encode()).hexdigest()
+            self.tree.create_node(state, states_code, parent_code)
+        else:
+            states_code = md5('.'.join(self.whereIam).encode()).hexdigest()
+            self.tree.create_node(state, states_code)
+
+        self.match(state)
+        self.whereIam.pop()
+
+    def match(self, current_state='program'):
+
+        if current_state not in self.none_terminals:
+            if self.lookahead == current_state:
+                self.founds.append({'whereIam': self.whereIam.copy(), 'terminal': self.lookahead})
+                if self.lookahead != '$':
+                    self.lookahead, self.lineno = next(self.get_next_token)
+                return
+
+            self.errors.append({'message': F'missing {current_state} on line {self.lineno}'})
+            return
+
+        for tr in self.states[current_state]['transition']:
+            if self.lookahead in tr['first']:
+                for state in tr['path']:
+                    self.proc(state)
+                return
+
+        if self.lookahead in self.states[current_state]['follow']:
+            if 'ε' not in self.states[current_state]['first']:
+                self.errors.append({'message': F'missing {current_state} on line {self.lineno}'})
+            return
+
+        self.errors.append({'message': F'illegal {self.lookahead} found on line {self.lineno}'})
+        self.lookahead, self.lineno = next(self.get_next_token)
+        self.match(current_state)

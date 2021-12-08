@@ -195,7 +195,8 @@ class Scanner:
         result, self.next = self.next, None
 
         if not character:
-            return self._end()
+            self._end()
+            return self.next
 
         self._update(character)
         self.lineno += character == '\n'
@@ -214,6 +215,8 @@ class Scanner:
                     continue
 
                 yield result
+
+        yield self.Token('$', 'KEYWORD', self.lineno)
 
     def _save_turn(self, _buffer):
 
