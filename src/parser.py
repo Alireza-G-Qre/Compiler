@@ -2,11 +2,12 @@ from scanner import Scanner
 from treelib import Tree
 from hashlib import md5
 
+
 class Parser:
 
     def __init__(self, scanner):
         self.get_next_token = (
-            (token.token if token.token in {'NUM', 'ID'} else token.object, token.lineno)
+            (token.token if token.token in {'NUM', 'ID'} else token.object, token, token.lineno)
             for token in scanner.get_next_token()
         )
 
@@ -329,37 +330,41 @@ class Parser:
 
             self.states[state]['first'] = firsts
 
-        self.lookahead, self.lineno = next(self.get_next_token)
+        self.lookahead, self.token, self.lineno = next(self.get_next_token)
         self.errors, self.founds = [], []
         self.whereIam = []
         self.none_terminals = set(self.states)
         self.tree = Tree()
 
-    def proc(self, state='program'):
-        self.whereIam.append(state)
-
-        if len(self.whereIam) > 1:
-            parent_code = md5('.'.join(self.whereIam[:-1]).encode()).hexdigest()
-            states_code = md5('.'.join(self.whereIam).encode()).hexdigest()
-            self.tree.create_node(state, states_code, parent_code)
-        else:
-            states_code = md5('.'.join(self.whereIam).encode()).hexdigest()
-            self.tree.create_node(state, states_code)
-
-        self.match(state)
-        self.whereIam.pop()
-
-    def match(self, current_state='program'):
+    def proc(self, current_state='program'):
+        self.whereIam.append(current_state)
 
         if current_state not in self.none_terminals:
             if self.lookahead == current_state:
-                self.founds.append({'whereIam': self.whereIam.copy(), 'terminal': self.lookahead})
                 if self.lookahead != '$':
-                    self.lookahead, self.lineno = next(self.get_next_token)
+                    self.lookahead, self.token, self.lineno = next(self.get_next_token)
+                    self.new_node(str(self.token))
+                    self.whereIam.pop()
                 return
 
             self.errors.append({'message': F'missing {current_state} on line {self.lineno}'})
+            self.whereIam.pop()
             return
+
+        self.new_node(current_state.capitalize())
+        self.match(current_state)
+        self.whereIam.pop()
+
+    def new_node(self, name):
+        states_code = md5('.'.join(self.whereIam).encode()).hexdigest()
+        if len(self.whereIam) < 2:
+            self.tree.create_node(name, states_code)
+            return
+
+        parent_code = md5('.'.join(self.whereIam[:-1]).encode()).hexdigest()
+        self.tree.create_node(name, states_code, parent_code)
+
+    def match(self, current_state='program'):
 
         for tr in self.states[current_state]['transition']:
             if self.lookahead in tr['first']:
@@ -373,5 +378,5 @@ class Parser:
             return
 
         self.errors.append({'message': F'illegal {self.lookahead} found on line {self.lineno}'})
-        self.lookahead, self.lineno = next(self.get_next_token)
+        self.lookahead, self.token, self.lineno = next(self.get_next_token)
         self.match(current_state)

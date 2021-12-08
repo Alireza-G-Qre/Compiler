@@ -164,7 +164,7 @@ class Scanner:
         self.current_state = 'start'
         self.address = address
         self.scanning = False
-        self.lineno, self.buffer, self.next = 1, '', None
+        self.lineno, self.buffer = 1, ''
 
         self.keywords = [
             'if', 'else', 'void', 'int', 'repeat', 'break', 'until', 'return'
@@ -192,29 +192,23 @@ class Scanner:
 
     def update(self, character):
 
-        result, self.next = self.next, None
-
         if not character:
             self._end()
-            return self.next
+            return
 
         self._update(character)
         self.lineno += character == '\n'
 
-        return result
-
     def get_next_token(self):
         with open(self.address, 'r') as f:
-
             self.scanning = True
+            counter = 0
 
             while self.scanning:
-                result = self.update(f.read(1))
-
-                if not result:
-                    continue
-
-                yield result
+                self.update(f.read(1))
+                if len(self.tokens) > counter:
+                    yield self.tokens[counter]
+                    counter += 1
 
         yield self.Token('$', 'KEYWORD', self.lineno)
 
@@ -238,7 +232,6 @@ class Scanner:
             token = self.Token(
                 _buffer, 'KEYWORD' if _buffer in self.keywords else 'ID', lineno)
             self.tokens.append(token)
-            self.next = token
 
             if _buffer not in self.symbol_table:
                 self.symbol_table.append(_buffer)
@@ -254,7 +247,6 @@ class Scanner:
 
             if token:
                 token = self.Token(_buffer, token, lineno)
-                self.next = token
                 self.tokens.append(token)
 
     def _update(self, ch):
@@ -288,7 +280,6 @@ class Scanner:
         _buffer = self.buffer[:-1][:7] + ('...' if len(self.buffer) > 7 else '')
         _lineno = self.lineno - self.buffer.count('\n') + 1
         self.lexical_errors.append(self.Error.UnclosedComment(_buffer, _lineno))
-
 
 # Used to save scanner result in files.
 # def save_scanner_results(scanner, directory=''):
