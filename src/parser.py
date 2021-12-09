@@ -346,7 +346,7 @@ class Parser:
         else:
             self.errors.append({'message': F'missing {entry} on line {self.lineno}'})
 
-        if not entry == '$':
+        if entry not in {'$', 'ε'} and self.lookahead != '$':
             self.lookahead, self.token, self.lineno = next(self.get_next_token)
 
     def proc(self, state='program', parent=None, idn=None):
@@ -366,6 +366,10 @@ class Parser:
             self.errors.append({'message': F'missing {state} on line {self.lineno}'})
             return
 
-        self.errors.append({'message': F'illegal {self.lookahead} found on line {self.lineno}'})
-        self.lookahead, self.token, self.lineno = next(self.get_next_token)
-        self.proc(state, parent=parent, idn=idn)
+        self.errors.append(
+            {'message': F'illegal {self.lookahead} found on line {self.lineno}'})
+
+        if self.lookahead != '$':
+            next_iteration = next(self.get_next_token)
+            self.lookahead, self.token, self.lineno = next_iteration
+            self.proc(state, parent=parent, idn=idn)

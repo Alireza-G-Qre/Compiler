@@ -167,7 +167,7 @@ class Scanner:
         self.lineno, self.buffer = 1, ''
 
         self.keywords = [
-            'if', 'else', 'void', 'int', 'repeat', 'break', 'until', 'return'
+            'if', 'else', 'void', 'int', 'repeat', 'break', 'until', 'return', 'endif'
         ]
 
         self.symbol_table.extend(self.keywords)
