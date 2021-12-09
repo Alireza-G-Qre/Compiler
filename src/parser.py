@@ -187,14 +187,14 @@ class Parser:
             },
             'b': {
                 'transition': [
-                    {'path': ['expression'], 'first': ['(', 'NUM', 'ID']},
+                    {'path': ['=', 'expression'], 'first': ['=']},
                     {'path': ['[', 'expression', ']', 'h'], 'first': ['[']},
                     {'path': ['simple-expression-prime'], 'first': ['(', 'ε', '*', '+', '-', '<', '==']},
                 ], 'follow': [',', ')', ']', ';'],
             },
             'h': {
                 'transition': [
-                    {'path': ['expression'], 'first': ['(', 'NUM', 'ID']},
+                    {'path': ['=', 'expression'], 'first': ['=']},
                     {'path': ['g', 'd', 'c'], 'first': ['*', '==', '<', '+', '-', 'ε']},
                 ], 'follow': [',', ')', ']', ';'],
             },
@@ -358,12 +358,13 @@ class Parser:
         self.lookahead, self.token, self.lineno = next(self.get_next_token)
 
     def proc(self, current_state='program'):
-
-        pid = self.up_stack[-1] if self.up_stack else None
         self.cnt += 1
-        sid = self.cnt
-        self.tree.create_node(current_state.capitalize(), sid, pid)
-        self.up_stack.append(sid)
+        self.tree.create_node(current_state.capitalize(), self.cnt, self.up_stack[-1] if self.up_stack else None)
+        self.up_stack.append(self.cnt)
+        self.proc_prime(current_state, self.cnt)
+        self.up_stack.pop()
+
+    def proc_prime(self, current_state, sid):
 
         for tr in self.states[current_state]['transition']:
             if self.lookahead in tr['first']:
@@ -374,20 +375,26 @@ class Parser:
 
                     self.proc(state)
 
-                self.up_stack.pop()
                 return
 
         if self.lookahead in self.states[current_state]['follow']:
             if 'ε' not in self.states[current_state]['first']:
                 self.errors.append({'message': F'missing {current_state} on line {self.lineno}'})
-            else:
-                self.cnt += 1
-                self.tree.create_node('epsilon', self.cnt, sid)
+                return
 
-            self.up_stack.pop()
+            for tr in self.states[current_state]['transition']:
+                if 'ε' in tr['first']:
+                    for state in tr['path']:
+                        if state != 'ε':
+                            self.cnt += 1
+                            self.tree.create_node(state.capitalize(), self.cnt, sid)
+
+                        self.cnt += 1
+                        self.tree.create_node('epsilon', self.cnt, self.cnt - 1)
+
             return
 
         self.errors.append({'message': F'illegal {self.lookahead} found on line {self.lineno}'})
         self.lookahead, self.token, self.lineno = next(self.get_next_token)
-        self.proc(current_state)
-        self.up_stack.pop()
+        self.proc_prime(current_state, self.cnt)
+
