@@ -349,11 +349,10 @@ class Parser:
         if entry not in {'$', 'ε'} and self.lookahead != '$':
             self.lookahead, self.token, self.lineno = next(self.get_next_token)
 
-    def proc(self, state='program', parent=None, idn=None):
+    def proc(self, state='program', parent=None):
 
-        if not idn:
-            idn = uuid4()
-            self.tree.create_node(state.capitalize(), identifier=idn, parent=parent)
+        idn = uuid4()
+        self.tree.create_node(state.capitalize(), identifier=idn, parent=parent)
 
         for transition in self.states[state]['transition']:
             if self.lookahead in transition['first'] or \
@@ -362,6 +361,8 @@ class Parser:
                     self.match(entry, idn)
                 return
 
+        self.tree.remove_node(idn)
+
         if self.lookahead in self.states[state]['follow']:
             self.errors.append({'message': F'missing {state} on line {self.lineno}'})
             return
@@ -369,7 +370,8 @@ class Parser:
         self.errors.append(
             {'message': F'illegal {self.lookahead} found on line {self.lineno}'})
 
-        if self.lookahead != '$':
-            next_iteration = next(self.get_next_token)
-            self.lookahead, self.token, self.lineno = next_iteration
-            self.proc(state, parent=parent, idn=idn)
+        if self.lookahead == '$':
+            return
+
+        self.lookahead, self.token, self.lineno = next(self.get_next_token)
+        self.proc(state, parent=parent)
