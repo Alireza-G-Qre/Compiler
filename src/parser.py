@@ -332,51 +332,62 @@ class Parser:
 
         self.lookahead, self.token, self.lineno = next(self.get_next_token)
         self.errors, self.founds = [], []
-        self.whereIam = []
         self.none_terminals = set(self.states)
+
+        self.pid = None
+        self.cnt = 0
+
         self.tree = Tree()
+        self.up_stack = []
+
+    def match(self, current_state, pid):
+
+        if not self.lookahead == current_state:
+            self.errors.append(
+                {'message': F'missing {current_state} on line {self.lineno}'})
+            return
+
+        self.founds.append((str(self.token), self.cnt, pid))
+        self.cnt += 1
+
+        if self.lookahead == '$':
+            self.tree.create_node('$', self.cnt, pid)
+            return
+
+        self.tree.create_node(str(self.token), self.cnt, pid)
+        self.lookahead, self.token, self.lineno = next(self.get_next_token)
 
     def proc(self, current_state='program'):
-        self.whereIam.append(current_state)
 
-        if current_state not in self.none_terminals:
-            if self.lookahead == current_state:
-                if self.lookahead != '$':
-                    self.lookahead, self.token, self.lineno = next(self.get_next_token)
-                    self.new_node(str(self.token))
-                    self.whereIam.pop()
-                return
-
-            self.errors.append({'message': F'missing {current_state} on line {self.lineno}'})
-            self.whereIam.pop()
-            return
-
-        self.new_node(current_state.capitalize())
-        self.match(current_state)
-        self.whereIam.pop()
-
-    def new_node(self, name):
-        states_code = md5('.'.join(self.whereIam).encode()).hexdigest()
-        if len(self.whereIam) < 2:
-            self.tree.create_node(name, states_code)
-            return
-
-        parent_code = md5('.'.join(self.whereIam[:-1]).encode()).hexdigest()
-        self.tree.create_node(name, states_code, parent_code)
-
-    def match(self, current_state='program'):
+        pid = self.up_stack[-1] if self.up_stack else None
+        self.cnt += 1
+        sid = self.cnt
+        self.tree.create_node(current_state.capitalize(), sid, pid)
+        self.up_stack.append(sid)
 
         for tr in self.states[current_state]['transition']:
             if self.lookahead in tr['first']:
                 for state in tr['path']:
+                    if state not in self.none_terminals:
+                        self.match(state, sid)
+                        continue
+
                     self.proc(state)
+
+                self.up_stack.pop()
                 return
 
         if self.lookahead in self.states[current_state]['follow']:
             if 'ε' not in self.states[current_state]['first']:
                 self.errors.append({'message': F'missing {current_state} on line {self.lineno}'})
+            else:
+                self.cnt += 1
+                self.tree.create_node('epsilon', self.cnt, sid)
+
+            self.up_stack.pop()
             return
 
         self.errors.append({'message': F'illegal {self.lookahead} found on line {self.lineno}'})
         self.lookahead, self.token, self.lineno = next(self.get_next_token)
-        self.match(current_state)
+        self.proc(current_state)
+        self.up_stack.pop()
