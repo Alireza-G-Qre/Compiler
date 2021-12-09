@@ -12,6 +12,7 @@ class Compiler:
 
 
 if __name__ == '__main__':
-    c = Compiler('/home/alireza/Project/qre_compiler/src/tests/T06/input.txt')
+    c = Compiler('/home/alireza/Project/qre_compiler/src/tests/T07/input.txt')
     c.parser.proc()
     c.parser.tree.show(key=False)
+    print(c.parser.errors)

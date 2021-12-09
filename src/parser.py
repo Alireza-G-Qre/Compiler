@@ -331,6 +331,7 @@ class Parser:
         self.lookahead, self.token, self.lineno = next(self.get_next_token)
         self.none_terminals = set(self.states)
         self.errors, self.up_stack = [], []
+        self.parsing = True
         self.pid, self.cnt, self.tree = None, 0, Tree()
 
     def match(self, entry, parent):
@@ -340,14 +341,14 @@ class Parser:
             return
 
         if self.lookahead == entry or entry == 'ε':
-            name = 'epsilon' if entry == 'ε' else \
-                '$' if entry == '$' else str(self.token)
-            self.tree.create_node(name, identifier=uuid4(), parent=parent)
+            self.tree.create_node(
+                'epsilon' if entry == 'ε' else '$' if entry == '$' else str(self.token),
+                identifier=uuid4(), parent=parent)
+            if entry not in {'$', 'ε'} and self.lookahead != '$':
+                self.lookahead, self.token, self.lineno = next(self.get_next_token)
         else:
-            self.errors.append({'message': F'missing {entry} on line {self.lineno}'})
-
-        if entry not in {'$', 'ε'} and self.lookahead != '$':
-            self.lookahead, self.token, self.lineno = next(self.get_next_token)
+            self.errors.append(
+                {'message': F'missing {entry} on line {self.lineno}'})
 
     def proc(self, state='program', parent=None):
 
@@ -358,7 +359,8 @@ class Parser:
             if self.lookahead in transition['first'] or \
                     (self.lookahead in self.states[state]['follow'] and 'ε' in transition['first']):
                 for entry in transition['path']:
-                    self.match(entry, idn)
+                    if self.parsing:
+                        self.match(entry, idn)
                 return
 
         self.tree.remove_node(idn)
@@ -371,6 +373,7 @@ class Parser:
             {'message': F'illegal {self.lookahead} found on line {self.lineno}'})
 
         if self.lookahead == '$':
+            self.parsing = False
             return
 
         self.lookahead, self.token, self.lineno = next(self.get_next_token)
