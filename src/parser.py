@@ -1,6 +1,6 @@
 from scanner import Scanner
 from treelib import Tree
-from hashlib import md5
+from uuid import uuid4
 
 
 class Parser:
@@ -13,22 +13,20 @@ class Parser:
 
         self.states = {
             'program': {
-                'transition': [
-                    {'path': ['declaration-list', '$'], 'first': ['$', 'ε', 'int', 'void']},
-                ], 'follow': ['$'],
+                'transition': [{'path': ['declaration-list', '$'], 'first': ['$', 'int', 'void']}], 'follow': [],
             },
             'declaration-list': {
                 'transition': [
                     {'path': ['declaration', 'declaration-list'], 'first': ['int', 'void']},
                     {'path': ['ε'], 'first': ['ε']},
                 ],
-                'follow': ['break', ';', 'ID', '(', 'NUM', 'if', 'return', '{', 'repeat', '$'],
+                'follow': ['break', ';', 'ID', '(', 'NUM', 'if', 'return', '{', '}', 'repeat', '$'],
             },
             'declaration': {
                 'transition': [
                     {'path': ['declaration-initial', 'declaration-prime'], 'first': ['int', 'void']},
                 ],
-                'follow': ['int', 'void', 'break', ';', 'ID', '(', 'NUM', 'if', 'return', '{', 'repeat', '$'],
+                'follow': ['int', 'void', 'break', ';', 'ID', '(', 'NUM', 'if', 'return', '{', '}', 'repeat', '$'],
             },
             'declaration-initial': {
                 'transition': [
@@ -40,20 +38,20 @@ class Parser:
                     {'path': ['fun-declaration-prime'], 'first': ['(']},
                     {'path': ['var-declaration-prime'], 'first': [';', '[']},
                 ],
-                'follow': ['int', 'void', 'break', ';', 'ID', '(', 'NUM', 'if', 'return', '{', 'repeat', '$'],
+                'follow': ['int', 'void', 'break', ';', 'ID', '(', 'NUM', 'if', 'return', '{', '}', 'repeat', '$'],
             },
             'var-declaration-prime': {
                 'transition': [
                     {'path': [';'], 'first': [';']},
                     {'path': ['[', 'NUM', ']', ';'], 'first': ['[']},
                 ],
-                'follow': ['int', 'void', 'break', ';', 'ID', '(', 'NUM', 'if', 'return', '{', 'repeat', '$'],
+                'follow': ['int', 'void', 'break', ';', 'ID', '(', 'NUM', 'if', 'return', '{', '}', 'repeat', '$'],
             },
             'fun-declaration-prime': {
                 'transition': [
                     {'path': ['(', 'params', ')', 'compound-stmt'], 'first': ['(']},
                 ],
-                'follow': ['int', 'void', 'break', ';', 'ID', '(', 'NUM', 'if', 'return', '{', 'repeat', '$'],
+                'follow': ['int', 'void', 'break', ';', 'ID', '(', 'NUM', 'if', 'return', '{', '}', 'repeat', '$'],
             },
             'type-specifier': {
                 'transition': [
@@ -90,7 +88,7 @@ class Parser:
                 ],
                 'follow': [
                     'until', 'endif', 'else', 'break', ';', 'ID', '(', 'NUM',
-                    'if', 'return', '{', 'repeat', 'int', 'void', '$', '}'
+                    'if', 'return', '{', '}', 'repeat', 'int', 'void', '$'
                 ],
             },
             'statement-list': {
@@ -331,70 +329,43 @@ class Parser:
             self.states[state]['first'] = firsts
 
         self.lookahead, self.token, self.lineno = next(self.get_next_token)
-        self.errors, self.founds = [], []
         self.none_terminals = set(self.states)
+        self.errors, self.up_stack = [], []
+        self.pid, self.cnt, self.tree = None, 0, Tree()
 
-        self.pid = None
-        self.cnt = 0
+    def match(self, entry, parent):
 
-        self.tree = Tree()
-        self.up_stack = []
-
-    def match(self, current_state, pid):
-
-        if not self.lookahead == current_state:
-            self.errors.append(
-                {'message': F'missing {current_state} on line {self.lineno}'})
+        if entry in self.none_terminals:
+            self.proc(entry, parent)
             return
 
-        self.founds.append((str(self.token), self.cnt, pid))
-        self.cnt += 1
+        if self.lookahead == entry or entry == 'ε':
+            name = 'epsilon' if entry == 'ε' else \
+                '$' if entry == '$' else str(self.token)
+            self.tree.create_node(name, identifier=uuid4(), parent=parent)
+        else:
+            self.errors.append({'message': F'missing {entry} on line {self.lineno}'})
 
-        if self.lookahead == '$':
-            self.tree.create_node('$', self.cnt, pid)
-            return
+        if not entry == '$':
+            self.lookahead, self.token, self.lineno = next(self.get_next_token)
 
-        self.tree.create_node(str(self.token), self.cnt, pid)
-        self.lookahead, self.token, self.lineno = next(self.get_next_token)
+    def proc(self, state='program', parent=None, idn=None):
 
-    def proc(self, current_state='program'):
-        self.cnt += 1
-        self.tree.create_node(current_state.capitalize(), self.cnt, self.up_stack[-1] if self.up_stack else None)
-        self.up_stack.append(self.cnt)
-        self.proc_prime(current_state, self.cnt)
-        self.up_stack.pop()
+        if not idn:
+            idn = uuid4()
+            self.tree.create_node(state.capitalize(), identifier=idn, parent=parent)
 
-    def proc_prime(self, current_state, sid):
-
-        for tr in self.states[current_state]['transition']:
-            if self.lookahead in tr['first']:
-                for state in tr['path']:
-                    if state not in self.none_terminals:
-                        self.match(state, sid)
-                        continue
-
-                    self.proc(state)
-
+        for transition in self.states[state]['transition']:
+            if self.lookahead in transition['first'] or \
+                    (self.lookahead in self.states[state]['follow'] and 'ε' in transition['first']):
+                for entry in transition['path']:
+                    self.match(entry, idn)
                 return
 
-        if self.lookahead in self.states[current_state]['follow']:
-            if 'ε' not in self.states[current_state]['first']:
-                self.errors.append({'message': F'missing {current_state} on line {self.lineno}'})
-                return
-
-            for tr in self.states[current_state]['transition']:
-                if 'ε' in tr['first']:
-                    for state in tr['path']:
-                        if state != 'ε':
-                            self.cnt += 1
-                            self.tree.create_node(state.capitalize(), self.cnt, sid)
-
-                        self.cnt += 1
-                        self.tree.create_node('epsilon', self.cnt, self.cnt - 1)
-
+        if self.lookahead in self.states[state]['follow']:
+            self.errors.append({'message': F'missing {state} on line {self.lineno}'})
             return
 
         self.errors.append({'message': F'illegal {self.lookahead} found on line {self.lineno}'})
         self.lookahead, self.token, self.lineno = next(self.get_next_token)
-        self.proc_prime(current_state, self.cnt)
-
+        self.proc(state, parent=parent, idn=idn)
