@@ -280,15 +280,3 @@ class Scanner:
         _buffer = self.buffer[:-1][:7] + ('...' if len(self.buffer) > 7 else '')
         _lineno = self.lineno - self.buffer.count('\n') + 1
         self.lexical_errors.append(self.Error.UnclosedComment(_buffer, _lineno))
-
-# Used to save scanner result in files.
-# def save_scanner_results(scanner, directory=''):
-#     address = os.path.join(directory, 'lexical_errors.txt')
-#     with open(address, 'w') as er:
-#         er.write(scanner.lexical_errors_to_string or 'There is no lexical error.')
-#
-#     address = os.path.join(directory, 'symbol_table.txt')
-#     with open(address, 'w') as sy: sy.write(scanner.symbol_table_to_string)
-#
-#     address = os.path.join(directory, 'tokens.txt')
-#     with open(address, 'w') as to: to.write(scanner.tokens_to_string)

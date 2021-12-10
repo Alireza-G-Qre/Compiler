@@ -348,7 +348,7 @@ class Parser:
                 self.lookahead, self.token, self.lineno = next(self.get_next_token)
         else:
             self.errors.append(
-                {'message': F'missing {entry} on line {self.lineno}'})
+                {'message': F'missing {entry}', 'lineno': self.lineno})
 
     def proc(self, state='program', parent=None):
 
@@ -366,15 +366,16 @@ class Parser:
         self.tree.remove_node(idn)
 
         if self.lookahead in self.states[state]['follow']:
-            self.errors.append({'message': F'missing {state} on line {self.lineno}'})
+            self.errors.append({'message': F'missing {state}', 'lineno': self.lineno})
             return
-
-        self.errors.append(
-            {'message': F'illegal {self.lookahead} found on line {self.lineno}'})
 
         if self.lookahead == '$':
+            self.errors.append({'message': 'Unexpected EOF', 'lineno': self.lineno})
             self.parsing = False
             return
+
+        else:
+            self.errors.append({'message': F'illegal {self.lookahead}', 'lineno': self.lineno})
 
         self.lookahead, self.token, self.lineno = next(self.get_next_token)
         self.proc(state, parent=parent)
