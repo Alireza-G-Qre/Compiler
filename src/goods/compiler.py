@@ -282,8 +282,26 @@ class Scanner:
         self.lexical_errors.append(self.Error.UnclosedComment(_buffer, _lineno))
 
 
-from treelib import Tree
-from uuid import uuid4
+from anytree import NodeMixin, RenderTree
+
+
+class ParserNode(NodeMixin):
+
+    def __init__(self, name, parent=None, children=None, **kwargs):
+        self.__dict__.update(kwargs)
+        if children:
+            self.children = children
+
+        self.name = name
+        self.parent = parent
+
+    @classmethod
+    def set_nts(cls, none_terminals):
+        cls.none_terminals = none_terminals
+
+    def __repr__(self):
+        return self.name.capitalize() \
+            if self.name in self.none_terminals else self.name
 
 
 class Parser:
@@ -615,41 +633,38 @@ class Parser:
         self.none_terminals = set(self.states)
         self.errors, self.up_stack = [], []
         self.parsing = True
-        self.pid, self.cnt, self.tree = None, 0, Tree()
+        self.pid, self.cnt = None, 0
+        ParserNode.set_nts(self.none_terminals)
 
-    def match(self, entry, parent):
+    def match(self, entry):
 
-        if entry in self.none_terminals:
-            self.proc(entry, parent)
+        if entry in self.none_terminals: return self.proc(entry)
+
+        if self.lookahead != entry and entry != 'ε':
+            name = entry.capitalize() if entry in self.none_terminals else entry
+            self.errors.append({'message': F'missing {name}', 'lineno': self.lineno})
             return
 
-        if self.lookahead == entry or entry == 'ε':
-            self.tree.create_node(
-                'epsilon' if entry == 'ε' else '$' if entry == '$' else str(self.token),
-                identifier=uuid4(), parent=parent)
-            if entry not in {'$', 'ε'} and self.lookahead != '$':
-                self.lookahead, self.token, self.lineno = next(self.get_next_token)
-        else:
-            self.errors.append(
-                {
-                    'message': F'missing {entry.capitalize() if entry in self.none_terminals else entry}',
-                    'lineno': self.lineno
-                })
+        name = 'epsilon' if entry == 'ε' else '$' if entry == '$' else str(self.token)
+        if entry not in {'$', 'ε'} and self.lookahead != '$':
+            self.lookahead, self.token, self.lineno = next(self.get_next_token)
 
-    def proc(self, state='program', parent=None):
+        return ParserNode(name)
 
-        idn = uuid4()
-        self.tree.create_node(state.capitalize(), identifier=idn, parent=parent)
+    def proc(self, state='program'):
 
         for transition in self.states[state]['transition']:
             if self.lookahead in transition['first'] or \
                     (self.lookahead in self.states[state]['follow'] and 'ε' in transition['first']):
+
+                children = []
                 for entry in transition['path']:
                     if self.parsing:
-                        self.match(entry, idn)
-                return
+                        children.append(self.match(entry))
 
-        self.tree.remove_node(idn)
+                children = [child for child in children if child]
+                if children:
+                    return ParserNode(state, children=children)
 
         if self.lookahead in self.states[state]['follow']:
             self.errors.append(
@@ -667,7 +682,7 @@ class Parser:
             self.errors.append({'message': F'illegal {self.lookahead}', 'lineno': self.lineno})
 
         self.lookahead, self.token, self.lineno = next(self.get_next_token)
-        self.proc(state, parent=parent)
+        return self.proc(state)
 
 
 class Compiler:
@@ -675,14 +690,15 @@ class Compiler:
     def __init__(self, address):
         self.scanner = Scanner(address)
         self.parser = Parser(self.scanner)
+        self.root_node = None
 
     def compile(self):
-        self.parser.proc()
+        self.root_node = self.parser.proc()
         return self
 
     def document(self):
-        if os.path.exists('parse_tree.txt'): os.remove('parse_tree.txt')
-        self.parser.tree.save2file(key=False, filename='parse_tree.txt')
+        with open('parse_tree.txt', 'w') as f:
+            f.write(str(RenderTree(self.root_node)))
 
         with open('syntax_errors.txt', 'w') as f:
             errors = '\n'.join([F'#{x["lineno"]} : syntax error, {x["message"]}'
